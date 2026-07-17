@@ -23,7 +23,7 @@ const TARGET_ZONE = 'A';
 const TARGET_SPOT_NUMBER = 1;
 
 // WebアプリのURL
-const API_URL = 'http://localhost:3000/api/sensor';
+const API_URL = 'https://parking-mvp-one.vercel.app/api/sensor';
 
 // 状態保存用のファイルパス（Next.jsの公開フォルダ）
 const STATE_FILE_PATH = path.join(__dirname, 'public', 'sensor-state.json');
