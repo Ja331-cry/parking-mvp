@@ -60,17 +60,20 @@ export default async function AdminPage(props: {
     const zones = ['A', 'B', 'C', 'D', 'E'];
     const spotsPerZone = 20;
 
+    const spotsData = [];
     for (const zone of zones) {
       for (let i = 1; i <= spotsPerZone; i++) {
-        await prisma.parkingSpot.create({
-          data: {
-            zone,
-            spotNumber: i,
-            isOccupied: false,
-          }
+        spotsData.push({
+          zone,
+          spotNumber: i,
+          isOccupied: false,
         });
       }
     }
+    
+    await prisma.parkingSpot.createMany({
+      data: spotsData
+    });
 
     // 再取得
     spots = await prisma.parkingSpot.findMany({
