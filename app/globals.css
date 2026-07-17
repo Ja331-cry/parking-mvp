@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --background: #e0e5ec;
+  --foreground: #4a5568;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+@layer utilities {
+  .bg-neu {
+    background-color: #e0e5ec;
+  }
+  .shadow-neu {
+    box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.5);
+  }
+  .shadow-neu-inner {
+    box-shadow: inset 6px 6px 10px 0 rgba(163, 177, 198, 0.6), inset -6px -6px 10px 0 rgba(255, 255, 255, 0.5);
+  }
+  .shadow-neu-sm {
+    box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.5);
+  }
+  .shadow-neu-inner-sm {
+    box-shadow: inset 3px 3px 6px 0 rgba(163, 177, 198, 0.6), inset -3px -3px 6px 0 rgba(255, 255, 255, 0.5);
+  }
+  .text-neu {
+    color: #4a5568;
+  }
+  /* Active states for buttons */
+  .active\:shadow-neu-inner:active {
+    box-shadow: inset 6px 6px 10px 0 rgba(163, 177, 198, 0.6), inset -6px -6px 10px 0 rgba(255, 255, 255, 0.5);
+  }
+  .active\:shadow-neu-inner-sm:active {
+    box-shadow: inset 3px 3px 6px 0 rgba(163, 177, 198, 0.6), inset -3px -3px 6px 0 rgba(255, 255, 255, 0.5);
+  }
+}

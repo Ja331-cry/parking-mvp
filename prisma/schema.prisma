@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// 学生の登録車両を管理するテーブル
+model RegisteredVehicle {
+  id           Int      @id @default(autoincrement()) // 自動で割り振られる番号
+  studentId    String   // 学籍番号
+  licensePlate String   @unique // ナンバー（重複登録防止）
+  grade        Int      @default(1) // 学年
+  createdAt    DateTime @default(now()) // 登録された日時
+}
+
+// 入庫検知・警告ログを管理するテーブル
+model DetectionLog {
+  id            Int      @id @default(autoincrement())
+  detectedPlate String   // 読み取ったナンバー
+  status        String   // 判定結果（OK, 警告等）
+  createdAt     DateTime @default(now())
+}
+
+model ParkingSpot {
+  id         String   @id @default(cuid())
+  zone       String   // "A", "B", "C", "D", "E" など列の名前
+  spotNumber Int      // 1, 2, 3...
+  isOccupied Boolean  @default(false)
+  plateText  String?  // 割り当てられた車のナンバー（Feature 2用）
+  updatedAt  DateTime @updatedAt
+
+  @@unique([zone, spotNumber])
+}
