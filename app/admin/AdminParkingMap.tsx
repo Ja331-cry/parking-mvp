@@ -10,6 +10,7 @@ type ParkingSpot = {
   spotNumber: number;
   isOccupied: boolean;
   plateText: string | null;
+  updatedAt: Date;
 };
 
 export default function AdminParkingMap({ spots }: { spots: ParkingSpot[] }) {
@@ -74,12 +75,21 @@ export default function AdminParkingMap({ spots }: { spots: ParkingSpot[] }) {
             const renderSpot = (spot: ParkingSpot & { plateText?: string | null }, isLeft: boolean) => {
               const isWaiting = !spot.isOccupied && spot.plateText;
               
+              const getDurationString = (date: Date) => {
+                const diffMs = Date.now() - new Date(date).getTime();
+                const diffMins = Math.floor(diffMs / 60000);
+                if (diffMins < 60) return `${diffMins}分`;
+                const hours = Math.floor(diffMins / 60);
+                const mins = diffMins % 60;
+                return `${hours}時間${mins}分`;
+              };
+
               return (
                 <button 
                   key={spot.id}
                   onClick={() => handleToggle(spot.id, spot.isOccupied)}
                   disabled={isPending}
-                  title={spot.isOccupied ? `満車: ${spot.plateText || '不明'} - クリックで出庫` : isWaiting ? `入庫待ち: ${spot.plateText} - クリックで強制入庫` : `空車 - クリックで手動入庫`}
+                  title={spot.isOccupied ? `満車: ${spot.plateText || '不明'}\n駐車時間: ${getDurationString(spot.updatedAt)}\n(クリックで出庫)` : isWaiting ? `入庫待ち: ${spot.plateText} - クリックで強制入庫` : `空車 - クリックで手動入庫`}
                   className={`w-12 h-8 mb-1 rounded-md transition-all duration-300 flex items-center justify-center text-[9px] font-black cursor-pointer relative overflow-hidden active:scale-95
                     ${spot.isOccupied 
                       ? 'bg-neu shadow-neu-sm text-rose-500 hover:shadow-neu' // 満車

@@ -7,6 +7,7 @@ import LogFilter from './LogFilter';
 import AdminParkingMap from './AdminParkingMap';
 import ManualEntryForm from './ManualEntryForm';
 import SensorDebugViewer from '../components/SensorDebugViewer';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 import { prisma } from '@/lib/prisma';
 
@@ -84,6 +85,80 @@ export default async function AdminPage(props: {
     });
   }
 
+  // --- Analytics Data Processing ---
+  let averageDurationMinutes = 0;
+  let busiestHour = "データなし";
+  let busiestExitHour = "データなし";
+  const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+    hour: `${i}:00`,
+    entryCount: 0,
+    exitCount: 0
+  }));
+
+  if (currentTab === 'analytics') {
+    const allLogs = await prisma.detectionLog.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const activeSessions: Record<string, Date> = {};
+    let totalDurationMs = 0;
+    let completedSessionsCount = 0;
+
+    for (const log of allLogs) {
+      const isExit = log.status.includes('出庫');
+      const plate = log.detectedPlate;
+
+      // 「OK」が含まれているログを入庫として扱う（要件や既存ログフォーマットに依存）
+      if (!isExit && log.status.includes('OK')) { 
+        activeSessions[plate] = log.createdAt;
+        // 入庫した時間帯をカウント
+        const hour = new Date(log.createdAt).getHours();
+        hourlyData[hour].entryCount += 1;
+      } else if (isExit && activeSessions[plate]) {
+        const entryTime = activeSessions[plate];
+        const duration = new Date(log.createdAt).getTime() - new Date(entryTime).getTime();
+        
+        // 出庫した時間帯をカウント
+        const hour = new Date(log.createdAt).getHours();
+        hourlyData[hour].exitCount += 1;
+
+        // 異常値（数秒で出庫した、または何日も経っている等）を排除したい場合はここで弾く
+        if (duration > 0 && duration < 1000 * 60 * 60 * 24 * 7) { 
+          totalDurationMs += duration;
+          completedSessionsCount += 1;
+        }
+        delete activeSessions[plate]; // ペアが完了したら削除
+      }
+    }
+
+    if (completedSessionsCount > 0) {
+      averageDurationMinutes = Math.round((totalDurationMs / completedSessionsCount) / (1000 * 60));
+    }
+
+    let maxEntryCount = 0;
+    let maxEntryHourIndex = -1;
+    let maxExitCount = 0;
+    let maxExitHourIndex = -1;
+
+    hourlyData.forEach((d, i) => {
+      if (d.entryCount > maxEntryCount) {
+        maxEntryCount = d.entryCount;
+        maxEntryHourIndex = i;
+      }
+      if (d.exitCount > maxExitCount) {
+        maxExitCount = d.exitCount;
+        maxExitHourIndex = i;
+      }
+    });
+
+    if (maxEntryCount > 0) {
+      busiestHour = `${maxEntryHourIndex}:00 〜 ${maxEntryHourIndex + 1}:00`;
+    }
+    if (maxExitCount > 0) {
+      busiestExitHour = `${maxExitHourIndex}:00 〜 ${maxExitHourIndex + 1}:00`;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-neu py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
 
@@ -121,12 +196,29 @@ export default async function AdminPage(props: {
           >
             📋 車両・ログ管理
           </a>
+          <a 
+            href="/admin?tab=analytics" 
+            className={`px-6 py-4 font-black text-sm rounded-2xl transition-all ${currentTab === 'analytics' ? 'bg-neu shadow-neu-inner text-indigo-600' : 'bg-neu shadow-neu text-slate-500 hover:shadow-neu-inner'}`}
+          >
+            📊 分析ダッシュボード
+          </a>
         </div>
 
         {currentTab === 'map' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <ManualEntryForm />
             <AdminParkingMap spots={spots} />
+          </div>
+        )}
+
+        {currentTab === 'analytics' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <AnalyticsDashboard 
+              averageDurationMinutes={averageDurationMinutes}
+              busiestHour={busiestHour}
+              busiestExitHour={busiestExitHour}
+              hourlyData={hourlyData}
+            />
           </div>
         )}
 
