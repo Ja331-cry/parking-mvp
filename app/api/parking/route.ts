@@ -3,6 +3,19 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
+    // 幻の車対策：予約（黄色）のまま5分間経過した枠を空車にリセットする
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await prisma.parkingSpot.updateMany({
+      where: {
+        isOccupied: false,
+        plateText: { not: null },
+        updatedAt: { lt: fiveMinutesAgo }
+      },
+      data: {
+        plateText: null
+      }
+    });
+
     // 駐車枠データを取得
     let spots = await prisma.parkingSpot.findMany({
       orderBy: [

@@ -4,10 +4,17 @@ import { revalidatePath } from 'next/cache';
 
 export async function POST(request: Request) {
   try {
-    const { zone, spotNumber, action } = await request.json();
+    const { zone, spotNumber, action, apiKey } = await request.json();
 
     if (!zone || !spotNumber || !action) {
       return NextResponse.json({ error: 'パラメータが不足しています' }, { status: 400 });
+    }
+
+    // セキュリティチェック（APIキーの検証）
+    const validApiKey = process.env.SENSOR_API_KEY || 'himitunokagi123';
+    if (apiKey !== validApiKey) {
+      console.error('Unauthorized access attempt to /api/sensor');
+      return NextResponse.json({ error: '認証エラー：APIキーが不正です' }, { status: 401 });
     }
 
     // 指定された駐車枠を探す
