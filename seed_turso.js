@@ -1,9 +1,11 @@
 const { createClient } = require('@libsql/client');
+require('dotenv').config();
 
 const client = createClient({
-  url: 'libsql://parking-db-jaaa.aws-ap-northeast-1.turso.io',
-  authToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODQyNjI4MTgsImlkIjoiMDE5ZjZlNTgtZTMwMS03MmY0LWE5NzEtZTYzM2VlN2U3YjJmIiwia2lkIjoiZ0R5TXdyd05Fd0NsOVhJLXpIa0lfZ3BNODJFakQ5QXFCN1pmQ040WTk5TSIsInJpZCI6ImFkYzc5MzViLTMyNGQtNGI1OC04MDg4LWJhNTRhZTM5N2I4NyJ9.d_56tY9sCxUGB674_mPIRFQJwjt5tBe708zTQNFzLXrL7twM4ANJnqxs5tPHsfGPR46MAikOgY3dj7xSZ4pxDQ'
+  url: process.env.DATABASE_URL || 'libsql://parking-db-jaaa.aws-ap-northeast-1.turso.io',
+  authToken: process.env.TURSO_AUTH_TOKEN
 });
+
 
 async function main() {
   console.log("Creating tables...");
